@@ -1,29 +1,22 @@
 #!/usr/bin/python3
-"""Module"""
+'''
+export data in the CSV format
+'''
 
+import csv
 import requests
-import sys
+from sys import argv
 
 if __name__ == '__main__':
-    employee_id = sys.argv[1]
-    user_url = "https://jsonplaceholder.typicode.com/users/{}" \
-        .format(employee_id)
-    todos_url = "https://jsonplaceholder.typicode.com/users/{}/todos/" \
-        .format(employee_id)
-
-    user_info = requests.request('GET', user_url).json()
-    todos_info = requests.request('GET', todos_url).json()
-
-    employee_name = user_info["name"]
-    employee_username = user_info["username"]
-    task_completed = list(filter(lambda obj:
-                                 (obj["completed"] is True), todos_info))
-    number_of_done_tasks = len(task_completed)
-    total_number_of_tasks = len(todos_info)
-
-    with open(str(employee_id) + '.csv', "w") as file:
-        [file.write('"' + str(employee_id) + '",' +
-                    '"' + employee_username + '",' +
-                    '"' + str(task["completed"]) + '",' +
-                    '"' + task["title"] + '",' + "\n")
-         for task in todos_info]
+    uid = argv[1]
+    url = "https://jsonplaceholder.typicode.com/users/{}".format(uid)
+    user = requests.get(url, verify=False).json()
+    url = "https://jsonplaceholder.typicode.com/todos?userId={}".format(
+        uid)
+    todo = requests.get(url, verify=False).json()
+    with open("{}.csv".format(uid), 'w', newline='') as csvfile:
+        taskwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+        for t in todo:
+            taskwriter.writerow([int(uid), user.get('username'),
+                                 t.get('completed'),
+                                 t.get('title')])
