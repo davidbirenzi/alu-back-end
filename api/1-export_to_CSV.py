@@ -1,22 +1,41 @@
 #!/usr/bin/python3
-'''
-export data in the CSV format
-'''
+"""Script that gets user data (Todo list) from API
+and then export the result to csv file. """
 
 import csv
 import requests
-from sys import argv
+import sys
 
-if __name__ == '__main__':
-    uid = argv[1]
-    url = "https://jsonplaceholder.typicode.com/users/{}".format(uid)
-    user = requests.get(url, verify=False).json()
-    url = "https://jsonplaceholder.typicode.com/todos?userId={}".format(
-        uid)
-    todo = requests.get(url, verify=False).json()
-    with open("{}.csv".format(uid), 'w', newline='') as csvfile:
-        taskwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
-        for t in todo:
-            taskwriter.writerow([int(uid), user.get('username'),
-                                 t.get('completed'),
-                                 t.get('title')])
+
+def main():
+    """main function"""
+    user_id = int(sys.argv[1])
+    todo_url = 'https://jsonplaceholder.typicode.com/todos'
+    user_url = 'https://jsonplaceholder.typicode.com/users/{}'.format(user_id)
+
+    file_content = []
+
+    response = requests.get(todo_url)
+    user_name = requests.get(user_url).json().get('username')
+
+    for todo in response.json():
+        if todo.get('userId') == user_id:
+            file_content.append(
+                [str(user_id),
+                 user_name,
+                 todo.get('completed'),
+                 "{}".format(todo.get('title'))])
+
+    print(file_content)
+    file_name = "{}.csv".format(user_id)
+    with open(file_name, 'w', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+        for row in file_content:
+            for item in row:
+                str(item)
+            csv_writer.writerow(row)
+        print('file written successfully')
+
+
+if __name__ == "__main__":
+    main()
